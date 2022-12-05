@@ -2,6 +2,7 @@
 package com.example.presentation.screens.home_screen.tabs_screen
 
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -36,6 +37,7 @@ import com.example.presentation.utiles.Routes
 import com.google.firebase.Timestamp
 
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 
 fun ChatsScreen(
@@ -44,7 +46,7 @@ fun ChatsScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
 
     ) {
-
+     if(authViewModel.getCurrentUser()!=null)
     chatPageViewModel.getLastMessages(authViewModel.getCurrentUser()!!.uid)
     ComposeChatAppTheme {
         Column {
@@ -96,10 +98,17 @@ fun ChatsScreen(
                                 val message =  if(textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
                                     "you sent ${textMessage.msgType} " else   "$userName sent ${textMessage.msgType} "
 
-                                    ChatRow(userName = userName.toString(),
+                                     ChatRow(userName = userName.toString(),
                                         message = message.toString() ,
                                         time = getActualTime(textMessage.msgTime as Timestamp) ,
-                                        onChatClick = { /*TODO*/ })
+                                        onChatClick = {
+                                            val userId = if(textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
+                                                textMessage.messageReceiverId else textMessage.messageSenderId
+                                            mainNavController.navigate(route = Routes().chatScreen + "/$userId") {
+                                                launchSingleTop = true
+
+                                            }
+                                        })
 
 
                             }

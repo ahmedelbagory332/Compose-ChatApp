@@ -269,7 +269,7 @@ class MessageRepositoryImpl @Inject constructor(
             messageReceiverName = messageReceiverName,
             messageSenderId = messageSenderId,
             messageReceiverId = messageReceiverId,
-            msgType = "text",
+            msgType = msgType,
             message = messageText
         )
     }
