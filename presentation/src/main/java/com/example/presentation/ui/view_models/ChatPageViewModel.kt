@@ -5,10 +5,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.use_case.GetLastMessagesUseCase
-import com.example.domain.use_case.GetMessagesUseCase
-import com.example.domain.use_case.SendFileUseCase
-import com.example.domain.use_case.SendMessageUseCase
+import com.example.domain.use_case.message_use_case.GetLastMessagesUseCase
+import com.example.domain.use_case.message_use_case.GetMessagesUseCase
+import com.example.domain.use_case.message_use_case.SendFileUseCase
+import com.example.domain.use_case.message_use_case.SendMessageUseCase
 import com.example.domain.utils.Resource
 import com.example.domain.utils.states.ChatState
 import com.example.domain.utils.states.LastMessageState

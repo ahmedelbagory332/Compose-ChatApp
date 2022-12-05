@@ -1,14 +1,11 @@
 package com.example.presentation.ui.view_models
 
-import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.model.UsersModel
-import com.example.domain.use_case.UserUseCase
-import com.example.domain.use_case.UsersUseCase
+import com.example.domain.use_case.user_use_case.UserUseCase
+import com.example.domain.use_case.user_use_case.UsersUseCase
 import com.example.domain.utils.Resource
-import com.example.domain.utils.states.AuthState
 import com.example.domain.utils.states.UserState
 import com.example.domain.utils.states.UsersState
 import dagger.hilt.android.lifecycle.HiltViewModel

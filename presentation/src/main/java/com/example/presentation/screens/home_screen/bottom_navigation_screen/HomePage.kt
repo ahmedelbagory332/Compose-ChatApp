@@ -22,8 +22,10 @@ import com.example.presentation.components.*
 import com.example.presentation.screens.home_screen.tabs_screen.ChatsScreen
 import com.example.presentation.screens.home_screen.tabs_screen.UsersScreen
 import com.example.presentation.theme.*
+import com.example.presentation.ui.view_models.ApplicationViewModel
 import com.example.presentation.ui.view_models.AuthViewModel
 import com.example.presentation.ui.view_models.HomePageViewModel
+import com.example.presentation.utiles.MyNotificationManager
 import com.example.presentation.utiles.Routes
 
 
@@ -31,12 +33,14 @@ import com.example.presentation.utiles.Routes
 fun HomePage(
     mainNavController: NavHostController,
     homePageViewModel: HomePageViewModel = hiltViewModel(),
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    applicationViewModel: ApplicationViewModel = hiltViewModel(),
 
     ) {
     val tabsNavController = rememberNavController()
     val navBackStackEntry by tabsNavController.currentBackStackEntryAsState()
     val currentRoute  = navBackStackEntry?.destination?.route
+    val notification = MyNotificationManager(applicationViewModel.application)
 
     ComposeChatAppTheme {
         Scaffold(
@@ -98,8 +102,7 @@ fun HomePage(
                         tabsNavController = tabsNavController,
                         actions = {
                             IconButton(onClick = {
-                                homePageViewModel.updateSearchWidgetState(true)
-
+                               homePageViewModel.updateSearchWidgetState(true)
                             }) {
                                 Icon(
                                     imageVector = Icons.Filled.Search,

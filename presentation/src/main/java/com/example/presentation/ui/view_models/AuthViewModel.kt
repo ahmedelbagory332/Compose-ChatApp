@@ -5,14 +5,16 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.use_case.LogInUseCase
-import com.example.domain.use_case.RegisterUseCase
+import com.example.domain.use_case.auth_use_case.LogInUseCase
+import com.example.domain.use_case.auth_use_case.RegisterUseCase
+import com.example.domain.use_case.auth_use_case.UpdateUserStatusUseCase
 import com.example.domain.utils.Resource
 import com.example.domain.utils.states.AuthState
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -20,6 +22,7 @@ import javax.inject.Inject
 class AuthViewModel  @Inject constructor(
     val registerUseCase: RegisterUseCase,
     val logInUseCase: LogInUseCase,
+    val updateUserStatusUseCase: UpdateUserStatusUseCase,
     private val firebaseAuth: FirebaseAuth,
 ) : ViewModel() {
 
@@ -79,6 +82,11 @@ class AuthViewModel  @Inject constructor(
     fun getCurrentUser() = firebaseAuth.currentUser
 
     fun userLogOut() = firebaseAuth.signOut()
+
+    fun updateUserStatus(userStatus:String, lastSeen: Any?) =
+        viewModelScope.launch {
+            updateUserStatusUseCase(userStatus, lastSeen)
+        }
 
 
 }

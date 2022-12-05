@@ -5,6 +5,7 @@ import android.app.Application
 import com.example.data.repository.AuthRepositoryImpl
 import com.example.data.repository.MessageRepositoryImpl
 import com.example.data.repository.UsersRepositoryImpl
+import com.example.data.utils.MyNotificationManager
 import com.example.domain.model.UsersModel
 import com.example.domain.repository.AuthRepository
 import com.example.domain.repository.MessageRepository
@@ -64,7 +65,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMessageRepository(fireStore: FirebaseFirestore,mStorageRef: StorageReference,application: Application): MessageRepository =
-        MessageRepositoryImpl( fireStore , mStorageRef , application)
+    fun provideMessageRepository(fireStore: FirebaseFirestore,mStorageRef: StorageReference,application: Application,myNotificationManager : MyNotificationManager): MessageRepository =
+        MessageRepositoryImpl( fireStore , mStorageRef , application , myNotificationManager)
 
 }

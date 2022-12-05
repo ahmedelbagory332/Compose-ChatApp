@@ -32,15 +32,12 @@ import com.example.presentation.theme.Purple500
 import com.example.presentation.ui.view_models.ApplicationViewModel
 import com.example.presentation.ui.view_models.AuthViewModel
 import com.example.presentation.ui.view_models.ChatPageViewModel
-import com.example.presentation.utiles.initRecorder
-import com.example.presentation.utiles.myAudioRecorder
-import com.example.presentation.utiles.sendTextMessage
-import com.example.presentation.utiles.sendVoiceMessage
+import com.example.presentation.utiles.*
+import com.google.firebase.firestore.FieldValue
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-
 
 
 @SuppressLint("SuspiciousIndentation")
@@ -50,11 +47,8 @@ fun ChatScreenBottom(
     authViewModel: AuthViewModel,
     state: UserState,
     applicationViewModel: ApplicationViewModel = hiltViewModel(),
-    ) {
+) {
     var offset by rememberSaveable { mutableStateOf(0f) }
-
-
-    val root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString()
 
     val imagePickerLauncher =
         prepareCameraAndUploadPicture(applicationViewModel, chatPageViewModel, authViewModel, state)
@@ -67,87 +61,95 @@ fun ChatScreenBottom(
     ) {
         Spacer(modifier = Modifier.width(5.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .weight(1f)
+                .border(1.dp, Color.LightGray, CircleShape),
+        ) {
+            TextField(
+                maxLines = 2,
                 modifier = Modifier
                     .weight(1f)
-                    .border(1.dp, Color.LightGray, CircleShape),
-            ) {
-                TextField(
-                    maxLines = 2,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .scrollable(
-                            orientation = Orientation.Vertical,
-                            state = rememberScrollableState { delta ->
-                                offset += delta
-                                delta
-                            }
-                        ),
-                    value = chatPageViewModel.textMessage.value ,
-                    placeholder = {
-                        if(chatPageViewModel.showTimer.value)
-                           Text("Start talking, recording....")
-                        else
-                            Text("write message.....")
+                    .fillMaxWidth()
+                    .scrollable(
+                        orientation = Orientation.Vertical,
+                        state = rememberScrollableState { delta ->
+                            offset += delta
+                            delta
+                        }
+                    ),
+                value = chatPageViewModel.textMessage.value,
+                placeholder = {
+                    if (chatPageViewModel.showTimer.value)
+                        Text("Start talking, recording....")
+                    else
+                        Text("write message.....")
 
-                    },
-                    enabled = !chatPageViewModel.showTimer.value,
-                    onValueChange = {
-                        chatPageViewModel.textMessage.value = it
-                        chatPageViewModel.showIcons.value = it.text.isEmpty()
-                    },
-                    colors = TextFieldDefaults.textFieldColors(
-                        textColor = Color.Black,
-                        backgroundColor = Color.White,
-                        disabledTextColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent
-                    )
+                },
+                enabled = !chatPageViewModel.showTimer.value,
+                onValueChange = {
+                    chatPageViewModel.textMessage.value = it
+                    chatPageViewModel.showIcons.value = it.text.isEmpty()
+                    if (it.text.isNotEmpty()) {
+                        authViewModel.updateUserStatus("Typing...",null)
+                    } else {
+                        authViewModel.updateUserStatus("Online",null)
+                    }
+                },
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    backgroundColor = Color.White,
+                    disabledTextColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
                 )
-                AnimatedVisibility(visible = chatPageViewModel.showIcons.value ) {
-                    IconButton(
-                        onClick = {
-                            filePickerLauncher.launch("*/*")
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AttachFile,
-                            contentDescription = "attach"
-                        )
-                    }
+            )
+
+
+            AnimatedVisibility(visible = chatPageViewModel.showIcons.value) {
+                IconButton(
+                    onClick = {
+                        filePickerLauncher.launch("*/*")
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AttachFile,
+                        contentDescription = "attach"
+                    )
                 }
-
-                AnimatedVisibility(visible = chatPageViewModel.showIcons.value) {
-                    IconButton(
-                        onClick = {
-                            chatPageViewModel.cameraImageName.value =
-                                "IMG_${Calendar.getInstance().time}.jpg"
-
-                            imagePickerLauncher.launch(
-                                createUriToTakePictureByCamera(
-                                    applicationViewModel.application,
-                                    chatPageViewModel
-                                )
-                            )
-
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.CameraAlt,
-                            contentDescription = "camera",
-                        )
-                    }
-                }
-
             }
+
+            AnimatedVisibility(visible = chatPageViewModel.showIcons.value) {
+                IconButton(
+                    onClick = {
+                        chatPageViewModel.cameraImageName.value =
+                            "IMG_${Calendar.getInstance().time}.jpg"
+
+                        imagePickerLauncher.launch(
+                            createUriToTakePictureByCamera(
+                                applicationViewModel.application,
+                                chatPageViewModel
+                            )
+                        )
+
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.CameraAlt,
+                        contentDescription = "camera",
+                    )
+                }
+            }
+
+        }
 
         ComposableLifecycle { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE) {
+                authViewModel.updateUserStatus("offline", FieldValue.serverTimestamp())
                 if (!chatPageViewModel.isRecording.value) {
-                    if(myAudioRecorder!=null){
+                    if (myAudioRecorder != null) {
                         myAudioRecorder!!.stop()
                         Toast.makeText(
                             applicationViewModel.application,
@@ -157,15 +159,17 @@ fun ChatScreenBottom(
                         chatPageViewModel.resetMediaRecorder()
                         File("$root/Bego Chat/Bego Recorders/${chatPageViewModel.recordFileName.value}").delete()
                     }
-
-
-                   }
+                }
             } else if (event == Lifecycle.Event.ON_STOP) {
+                authViewModel.updateUserStatus("offline", FieldValue.serverTimestamp())
                 chatPageViewModel.resetMediaRecorder()
 
-            }else if (event == Lifecycle.Event.ON_DESTROY) {
+            } else if (event == Lifecycle.Event.ON_DESTROY) {
+                authViewModel.updateUserStatus("offline", FieldValue.serverTimestamp())
                 chatPageViewModel.resetMediaRecorder()
-            }
+            }   else if (event ==Lifecycle.Event.ON_RESUME||event ==Lifecycle.Event.ON_CREATE||event ==Lifecycle.Event.ON_START) {
+            authViewModel.updateUserStatus("Online",null)
+        }
 
         }
 
@@ -177,8 +181,7 @@ fun ChatScreenBottom(
             onClick = {
                 if (chatPageViewModel.textMessage.value.text.isNotEmpty()) {
                     sendTextMessage(chatPageViewModel, authViewModel, state)
-                }
-                else{
+                } else {
                     initRecorder(applicationViewModel)
                     sendVoiceMessage(
                         applicationViewModel,
@@ -193,10 +196,10 @@ fun ChatScreenBottom(
             Icon(
                 tint = Color.White,
                 imageVector = if (chatPageViewModel.textMessage.value.text.isEmpty()) {
-                    if(!chatPageViewModel.isRecording.value)
+                    if (!chatPageViewModel.isRecording.value)
                         Icons.Filled.StopCircle
                     else
-                    Icons.Filled.Mic
+                        Icons.Filled.Mic
                 } else Icons.Filled.Send,
                 contentDescription = null
             )

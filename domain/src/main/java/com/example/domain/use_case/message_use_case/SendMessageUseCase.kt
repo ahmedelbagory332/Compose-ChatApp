@@ -1,4 +1,4 @@
-package com.example.domain.use_case
+package com.example.domain.use_case.message_use_case
 
 
 import com.example.domain.model.UsersModel
@@ -8,26 +8,24 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-class SendFileUseCase @Inject constructor(private val messageRepository: MessageRepository) {
+class SendMessageUseCase @Inject constructor(private val messageRepository: MessageRepository) {
 
 
     operator fun invoke(
         chatId: String,
         messageSenderId: String?,
         messageReceiverId: String?,
-        messageSenderName: String? ,
-        messageReceiverName: String? ,
-        fileType: String,
-        fileUri: Any,
+        messageSenderName: String?,
+        messageReceiverName: String?,
+        messageText: String?
     ) =
-        messageRepository.uploadFile(
+        messageRepository.sendMessage(
             chatId,
             messageSenderId,
             messageReceiverId,
             messageSenderName,
             messageReceiverName,
-            fileType,
-            fileUri,
+            messageText
         )
 
 

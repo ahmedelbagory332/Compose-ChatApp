@@ -9,4 +9,6 @@ interface AuthRepository {
 
     fun signIn(email:String, password:String): Flow<String>
 
+    fun updateUserStatus(userStatus:String, lastSeen: Any?)
+
 }

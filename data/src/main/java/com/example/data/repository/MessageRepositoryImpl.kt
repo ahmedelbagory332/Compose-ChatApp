@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import android.util.Log
 import com.example.data.utils.FilePath.getFileName
+import com.example.data.utils.MyNotificationManager
 import com.example.domain.model.ChatModel
 import com.example.domain.model.LastMessageModel
 import com.example.domain.repository.MessageRepository
@@ -18,7 +19,8 @@ import javax.inject.Inject
 class MessageRepositoryImpl @Inject constructor(
     private val fireStore: FirebaseFirestore,
     private val mStorageRef: StorageReference,
-    private val application: Application
+    private val application: Application,
+    private val myNotificationManager : MyNotificationManager
 ) : MessageRepository {
 
 
@@ -127,10 +129,12 @@ class MessageRepositoryImpl @Inject constructor(
                 Log.d("addOnFailureListener", "addOnFailureListener: ${it.message}")
             }
             .addOnProgressListener {
-                Log.d(
-                    "ImageSelectorAndCropper", "ImageSelectorAndCropper:" +
-                            " ${it.totalByteCount.toInt()} / ${it.bytesTransferred.toInt()}"
-                )
+                myNotificationManager.createUploadMediaNotification(it,false)
+
+            }
+            .addOnCompleteListener {
+                myNotificationManager.createUploadMediaNotification(null,true)
+
 
             }
 
@@ -301,6 +305,7 @@ class MessageRepositoryImpl @Inject constructor(
 
             }
     }
+
 
 
 }

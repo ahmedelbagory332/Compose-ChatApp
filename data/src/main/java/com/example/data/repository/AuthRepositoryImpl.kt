@@ -1,19 +1,19 @@
 package com.example.data.repository
 
 import android.annotation.SuppressLint
+import android.util.Log
 import com.example.domain.model.UsersModel
 import com.example.domain.repository.AuthRepository
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -80,6 +80,35 @@ class AuthRepositoryImpl @Inject constructor(
 
     }
 
+    override fun updateUserStatus(userStatus:String, lastSeen: Any?){
+        val docRef: Query = fireStore.collection("users").whereEqualTo("userId",firebaseAuth.currentUser!!.uid)
+        docRef.get().addOnSuccessListener { documents ->
+            val list: MutableList<String> = ArrayList()
+            for (document in documents) {
+
+                list.add(document.id)
+            }
+            if (lastSeen == null){
+                // mean user is online
+                for (id in list) {
+                    fireStore.collection("users").document(id).update("type", userStatus)
+                        .addOnSuccessListener { Log.d("ChatActivity", "type Updated!") }
+                }
+            }
+            else{
+                for (id in list) {
+                    fireStore.collection("users").document(id).update("type", userStatus)
+                        .addOnSuccessListener { Log.d("ChatActivity", "type Updated!") }
+                    fireStore.collection("users").document(id).update("lastSeen", lastSeen)
+                        .addOnSuccessListener { Log.d("ChatActivity", "lastSeen Updated!") }
+                }
+            }
+
+        }
+            .addOnFailureListener { exception ->
+                Log.d("ChatActivity", "Error getting documents: $exception",)
+            }
+    }
 
 
 }

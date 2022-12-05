@@ -2,6 +2,7 @@ package com.example.presentation.components
 
 import android.os.Build
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -48,7 +49,8 @@ import java.io.File
     index: Int,
     messages: ChatModel,
     authViewModel: AuthViewModel,
-    applicationViewModel: ApplicationViewModel = hiltViewModel()
+    applicationViewModel: ApplicationViewModel = hiltViewModel(),
+    onFileClick:(fileUrl:String,fileName:String)->Unit
 ) {
     when (chatPageViewModel.messagesState.value.messages[index].messageType) {
         "text" -> {
@@ -148,10 +150,12 @@ import java.io.File
         "document", "pdf", "audio" -> {
             MessageRow(messages, authViewModel) {
                 Row(
-                    if (messages.messageSenderId == authViewModel.getCurrentUser()!!.uid)
-                        Modifier.padding(top = 10.dp, start = 10.dp, end = 10.dp)
-                    else
-                        Modifier.padding(top = 10.dp, start = 10.dp, end = 10.dp),
+                    Modifier.padding(top = 10.dp, start = 10.dp, end = 10.dp).clickable {
+                       onFileClick(
+                           chatPageViewModel.messagesState.value.messages[index].messageFile.toString(),
+                           chatPageViewModel.messagesState.value.messages[index].messageText.toString()
+                       )
+                    },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Filled.AttachFile, "AttachFile")

@@ -72,46 +72,54 @@ fun ChatsScreen(
                     itemsIndexed(
                         items = chatPageViewModel.lastMessagesState.value.messages,
                     ) { index, textMessage ->
-
-                            if(textMessage.msgType == "text"){
-                                val message =  if(textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
-                                    "you : ${textMessage.message}" else  textMessage.message
-                                val userName = if(textMessage.messageSenderId != authViewModel.getCurrentUser()!!.uid)
-                                    textMessage.messageSenderName else textMessage.messageReceiverName
+                        if(authViewModel.getCurrentUser()!=null) {
+                            if (textMessage.msgType == "text") {
+                                val message =
+                                    if (textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
+                                        "you : ${textMessage.message}" else textMessage.message
+                                val userName =
+                                    if (textMessage.messageSenderId != authViewModel.getCurrentUser()!!.uid)
+                                        textMessage.messageSenderName else textMessage.messageReceiverName
                                 ChatRow(userName = userName.toString(),
-                                    message = message.toString() ,
-                                    time = getActualTime(textMessage.msgTime as Timestamp) ,
+                                    message = message.toString(),
+                                    time = getActualTime(textMessage.msgTime as Timestamp),
                                     onChatClick = {
-                                        val userId = if(textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
-                                            textMessage.messageReceiverId else textMessage.messageSenderId
+                                        val userId =
+                                            if (textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
+                                                textMessage.messageReceiverId else textMessage.messageSenderId
                                         mainNavController.navigate(route = Routes().chatScreen + "/$userId") {
                                             launchSingleTop = true
 
                                         }
                                     })
 
-                            }else{
+                            }
+                            else {
 
-                                    val userName = if(textMessage.messageSenderId != authViewModel.getCurrentUser()!!.uid)
+                                val userName =
+                                    if (textMessage.messageSenderId != authViewModel.getCurrentUser()!!.uid)
                                         textMessage.messageSenderName else textMessage.messageReceiverName
 
-                                val message =  if(textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
-                                    "you sent ${textMessage.msgType} " else   "$userName sent ${textMessage.msgType} "
+                                val message =
+                                    if (textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
+                                        "you sent ${textMessage.msgType} " else "$userName sent ${textMessage.msgType} "
 
-                                     ChatRow(userName = userName.toString(),
-                                        message = message.toString() ,
-                                        time = getActualTime(textMessage.msgTime as Timestamp) ,
-                                        onChatClick = {
-                                            val userId = if(textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
+                                ChatRow(userName = userName.toString(),
+                                    message = message.toString(),
+                                    time = getActualTime(textMessage.msgTime as Timestamp),
+                                    onChatClick = {
+                                        val userId =
+                                            if (textMessage.messageSenderId == authViewModel.getCurrentUser()!!.uid)
                                                 textMessage.messageReceiverId else textMessage.messageSenderId
-                                            mainNavController.navigate(route = Routes().chatScreen + "/$userId") {
-                                                launchSingleTop = true
+                                        mainNavController.navigate(route = Routes().chatScreen + "/$userId") {
+                                            launchSingleTop = true
 
-                                            }
-                                        })
+                                        }
+                                    })
 
 
                             }
+                        }
 
 
 
