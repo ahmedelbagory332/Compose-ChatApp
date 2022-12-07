@@ -2,12 +2,12 @@ package com.example.presentation.components
 
 
 import android.annotation.SuppressLint
-import android.media.MediaRecorder
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
@@ -23,7 +23,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -35,8 +34,6 @@ import com.example.presentation.ui.view_models.ChatPageViewModel
 import com.example.presentation.utiles.*
 import com.google.firebase.firestore.FieldValue
 import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -50,11 +47,26 @@ fun ChatScreenBottom(
 ) {
     var offset by rememberSaveable { mutableStateOf(0f) }
 
-    val imagePickerLauncher =
+    val takePictureLauncher =
         prepareCameraAndUploadPicture(applicationViewModel, chatPageViewModel, authViewModel, state)
+
+    val takePicturePermissionLauncher =
+        takePicturePermission(takePictureLauncher, applicationViewModel, chatPageViewModel)
 
     val filePickerLauncher =
         fileAttachPicker(applicationViewModel, chatPageViewModel, authViewModel, state)
+
+    val filePickerPermissionLauncher =
+        filePickerPermission(filePickerLauncher, applicationViewModel)
+
+    val voiceRecorderPermissionLauncher = voiceRecorderPermissions(
+        applicationViewModel,
+        chatPageViewModel,
+        authViewModel,
+        state
+    )
+
+
 
     Row(
         verticalAlignment = Alignment.Bottom
@@ -107,11 +119,16 @@ fun ChatScreenBottom(
                 )
             )
 
-
             AnimatedVisibility(visible = chatPageViewModel.showIcons.value) {
                 IconButton(
                     onClick = {
-                        filePickerLauncher.launch("*/*")
+                        if (hasPermissions(applicationViewModel.application, storagePermissions)) {
+
+                            filePickerLauncher.launch("*/*")
+                        }else{
+                            filePickerPermissionLauncher.launch(storagePermissions)
+
+                        }
                     },
                 ) {
                     Icon(
@@ -126,13 +143,20 @@ fun ChatScreenBottom(
                     onClick = {
                         chatPageViewModel.cameraImageName.value =
                             "IMG_${Calendar.getInstance().time}.jpg"
+                        if (hasPermissions(applicationViewModel.application, cameraPermissions)) {
 
-                        imagePickerLauncher.launch(
-                            createUriToTakePictureByCamera(
-                                applicationViewModel.application,
-                                chatPageViewModel
+                            takePictureLauncher.launch(
+                                createUriToTakePictureByCamera(
+                                    applicationViewModel.application,
+                                    chatPageViewModel
+                                )
                             )
-                        )
+
+                        }else{
+                            takePicturePermissionLauncher.launch(cameraPermissions)
+
+                        }
+
 
                     },
                 ) {
@@ -174,6 +198,7 @@ fun ChatScreenBottom(
         }
 
 
+
         Spacer(modifier = Modifier.width(5.dp))
         FloatingActionButton(
             modifier = Modifier.size(48.dp),
@@ -182,14 +207,21 @@ fun ChatScreenBottom(
                 if (chatPageViewModel.textMessage.value.text.isNotEmpty()) {
                     sendTextMessage(chatPageViewModel, authViewModel, state)
                 } else {
-                    initRecorder(applicationViewModel)
-                    sendVoiceMessage(
-                        applicationViewModel,
-                        root,
-                        chatPageViewModel,
-                        authViewModel,
-                        state
-                    )
+                    if (hasPermissions(applicationViewModel.application, voiceRecorderPermissions)) {
+
+                        initRecorder(applicationViewModel)
+                        sendVoiceMessage(
+                            applicationViewModel,
+                            root,
+                            chatPageViewModel,
+                            authViewModel,
+                            state
+                        )
+
+                    }else{
+                        voiceRecorderPermissionLauncher.launch(voiceRecorderPermissions)
+                    }
+
                 }
             }
         ) {
@@ -208,6 +240,7 @@ fun ChatScreenBottom(
     }
     Spacer(modifier = Modifier.height(10.dp))
 }
+
 
 
 

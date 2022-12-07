@@ -3,6 +3,7 @@ package com.example.presentation.components
 import android.app.Application
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +19,9 @@ import com.example.presentation.ui.view_models.ApplicationViewModel
 import com.example.presentation.ui.view_models.AuthViewModel
 import com.example.presentation.ui.view_models.ChatPageViewModel
 import com.example.presentation.utiles.FilePath
+import com.example.presentation.utiles.initRecorder
+import com.example.presentation.utiles.root
+import com.example.presentation.utiles.sendVoiceMessage
 import id.zelory.compressor.Compressor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -218,4 +222,96 @@ fun imageCropper(
         }
     }
     return imageCropLauncher
+}
+
+@Composable
+ fun voiceRecorderPermissions(
+    applicationViewModel: ApplicationViewModel,
+    chatPageViewModel: ChatPageViewModel,
+    authViewModel: AuthViewModel,
+    state: UserState
+): ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>> {
+    val voiceRecorderPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val isGranted = permissions.entries.all { it.value }
+
+        if (isGranted) {
+
+            initRecorder(applicationViewModel)
+            sendVoiceMessage(
+                applicationViewModel,
+                root,
+                chatPageViewModel,
+                authViewModel,
+                state
+            )
+
+        } else {
+
+            Toast.makeText(
+                applicationViewModel.application,
+                "PERMISSION DENIED",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+    return voiceRecorderPermissionLauncher
+}
+
+@Composable
+ fun filePickerPermission(
+    filePickerLauncher: ManagedActivityResultLauncher<String, Uri?>,
+    applicationViewModel: ApplicationViewModel
+): ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>> {
+    val filePickerPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val isGranted = permissions.entries.all { it.value }
+
+        if (isGranted) {
+
+            filePickerLauncher.launch("*/*")
+
+        } else {
+
+            Toast.makeText(
+                applicationViewModel.application,
+                "PERMISSION DENIED",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+    return filePickerPermissionLauncher
+}
+
+@Composable
+ fun takePicturePermission(
+    takePictureLauncher: ManagedActivityResultLauncher<Uri, Boolean>,
+    applicationViewModel: ApplicationViewModel,
+    chatPageViewModel: ChatPageViewModel
+): ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>> {
+    val takePicturePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val isGranted = permissions.entries.all { it.value }
+
+        if (isGranted) {
+
+            takePictureLauncher.launch(
+                createUriToTakePictureByCamera(
+                    applicationViewModel.application,
+                    chatPageViewModel
+                )
+            )
+        } else {
+
+            Toast.makeText(
+                applicationViewModel.application,
+                "PERMISSION DENIED",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+    return takePicturePermissionLauncher
 }

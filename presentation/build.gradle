@@ -87,6 +87,7 @@ dependencies {
     //exoplayer
     implementation "com.google.android.exoplayer:exoplayer:2.18.2"
 
+    implementation "androidx.compose.runtime:runtime-livedata:1.2.0-beta02"
 
 
 

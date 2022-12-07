@@ -14,24 +14,33 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import com.example.presentation.R
 import com.example.presentation.components.*
+import com.example.presentation.theme.Purple500
 import com.example.presentation.ui.view_models.ApplicationViewModel
 import com.example.presentation.ui.view_models.AuthViewModel
 import com.example.presentation.ui.view_models.ChatPageViewModel
 import com.example.presentation.ui.view_models.HomePageViewModel
-import com.example.presentation.utiles.downloadFile
-import com.example.presentation.utiles.root
+import com.example.presentation.utiles.*
 import com.google.firebase.firestore.FieldValue
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -86,28 +95,60 @@ fun ChatScreen(
                 )
 
             } else if (chatPageViewModel.messagesState.value.messages.isNotEmpty()) {
-                LazyColumn(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
-                    reverseLayout = true
-                ) {
-                    itemsIndexed(
-                        items = chatPageViewModel.messagesState.value.messages,
-                    ) { index, textMessage ->
+                Box( Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .fillMaxHeight(),) {
+                    val listState = rememberLazyListState()
 
-                        BuildChatScreenContent(
-                            chatPageViewModel,
-                            index,
-                            textMessage,
-                            authViewModel,
-                            onFileClick = { fileUrl,fileName->
-                                downloadFile(fileUrl,fileName, applicationContext)
-                        })
+                    val showButton by remember {
+                        derivedStateOf {
+                            listState.firstVisibleItemIndex > 0
+                        }
+                    }
+                    LazyColumn(
+                        Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
+                        reverseLayout = true,
+                        state = listState
+                    ) {
+                        itemsIndexed(
+                            items = chatPageViewModel.messagesState.value.messages,
+                        ) { index, textMessage ->
+
+                            BuildChatScreenContent(
+                                chatPageViewModel,
+                                index,
+                                textMessage,
+                                authViewModel,
+                                onFileClick = { fileUrl, fileName ->
+                                    downloadFile(fileUrl, fileName, applicationContext)
+                                })
+
+                        }
+                    }
+                    if (showButton) {
+                        val coroutineScope = rememberCoroutineScope()
+                        FloatingActionButton(
+                            modifier = Modifier.size(48.dp).align(Alignment.BottomEnd),
+                            backgroundColor = Purple500,
+                            onClick = {
+                                coroutineScope.launch {
+                                    listState.scrollToItem(0)
+                                }
+                            }
+                        ) {
+                            Icon(
+                                tint = Color.White,
+                                imageVector =  Icons.Filled.KeyboardArrowDown,
+                                contentDescription = null
+                            )
+                        }
 
                     }
                 }
+
             }
 
             ChatScreenBottom(chatPageViewModel, authViewModel, state)

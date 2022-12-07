@@ -1,8 +1,12 @@
 package com.example.presentation.ui.view_models
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.model.UsersModel
 import com.example.domain.use_case.user_use_case.UserUseCase
 import com.example.domain.use_case.user_use_case.UsersUseCase
 import com.example.domain.utils.Resource
@@ -31,7 +35,6 @@ class HomePageViewModel  @Inject constructor(
 
     val usersState: State<UsersState> = _usersState
     val userState: State<UserState> = _userState
-
     val searchTextState: State<String> = _searchTextState
     val searchWidgetState: State<Boolean> = _searchWidgetState
 
@@ -43,9 +46,8 @@ class HomePageViewModel  @Inject constructor(
         _searchTextState.value = newValue
     }
 
-
     init {
-        getAllUsers()
+       getAllUsers()
     }
 
 

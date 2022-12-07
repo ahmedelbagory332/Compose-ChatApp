@@ -39,6 +39,7 @@ import com.example.presentation.utiles.Routes
 @Composable
 fun UsersScreen(
     mainNavController: NavHostController,
+    allUsers:List<UsersModel>,
     homePageViewModel: HomePageViewModel = hiltViewModel(),
     authViewModel: AuthViewModel =  hiltViewModel(),
     applicationViewModel: ApplicationViewModel =  hiltViewModel(),
@@ -54,14 +55,14 @@ fun UsersScreen(
                 image =  painterResource(id = R.drawable.no_result)
             )
         }
-        else  if (homePageViewModel.usersState.value.users.isNotEmpty()){
+        else  if (allUsers.isNotEmpty()){
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .fillMaxHeight()
                                 .background(darkWhite)
                         ){
-                items(homePageViewModel.usersState.value.users){ users ->
+                items(allUsers){ users ->
 
                     UserRow(users, onUserClick = { user ->
                          if(authViewModel.getCurrentUser()!!.uid == user.userId){

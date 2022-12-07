@@ -257,10 +257,7 @@ import java.io.File
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         if(minVal =="0") Text(text = "00:00") else Text(text = minVal)
-                        if (File("$root/Bego Chat/Bego Recorders/${messages.messageText}").exists())
-                            Text(text = getDuration("$root/Bego Chat/Bego Recorders/${messages.messageText}",applicationViewModel.application).toString())
-                        else
-                            Text(text = "00:00")
+                        ShowVoiceDuration(messages, applicationViewModel)
                     }
                 else
                     Row(
@@ -268,10 +265,7 @@ import java.io.File
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(text = "00:00")
-                        if (File("$root/Bego Chat/Bego Recorders/${messages.messageText}").exists())
-                            Text(text = getDuration("$root/Bego Chat/Bego Recorders/${messages.messageText}",applicationViewModel.application).toString())
-                        else
-                            Text(text = "00:00")
+                        ShowVoiceDuration(messages, applicationViewModel)
 
                     }
 
@@ -283,5 +277,36 @@ import java.io.File
 
         }
     }
+}
+
+@Composable
+private fun ShowVoiceDuration(
+    messages: ChatModel,
+    applicationViewModel: ApplicationViewModel
+) {
+    if (hasPermissions(applicationViewModel.application, storagePermissions)) {
+        if (File("$root/Bego Chat/Bego Recorders/${messages.messageText}").exists())
+            Text(
+                text = getDuration(
+                    "$root/Bego Chat/Bego Recorders/${messages.messageText}",
+                    applicationViewModel.application,
+                null).toString()
+            )
+        else
+            Text(
+                text = getDuration(
+                    "$root/Bego Chat/Bego Recorders/${messages.messageText}",
+                    applicationViewModel.application,
+                    messages.messageFile).toString()
+            )
+    }
+
+    else
+        Text(
+            text = getDuration(
+                "$root/Bego Chat/Bego Recorders/${messages.messageText}",
+                applicationViewModel.application,
+                messages.messageFile).toString()
+        )
 }
 

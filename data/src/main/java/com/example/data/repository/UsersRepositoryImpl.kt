@@ -13,7 +13,7 @@ class UsersRepositoryImpl @Inject constructor(
     private val fireStore: FirebaseFirestore): UsersRepository {
 
 
-    override fun getUsers() : Flow<List<UsersModel>>  {
+    override fun getUsers() : Flow<MutableList<UsersModel>>  {
         return fireStore.collection("users")
             .snapshots()
             .map { querySnapshot ->

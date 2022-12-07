@@ -1,9 +1,11 @@
 package com.example.presentation.utiles
 
+import android.Manifest
 import android.app.Application
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -14,10 +16,10 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import com.example.domain.model.ChatModel
 import com.example.domain.utils.states.UserState
-import com.example.presentation.screens.*
 import com.example.presentation.ui.view_models.ApplicationViewModel
 import com.example.presentation.ui.view_models.AuthViewModel
 import com.example.presentation.ui.view_models.ChatPageViewModel
@@ -27,13 +29,15 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-
 var myAudioRecorder: MediaRecorder? =  null
  var minVal = "0"
  var maxVal = "0"
  val root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString()
  val mediaPlayer:MediaPlayer = MediaPlayer()
  val myDir = File("$root/Bego Chat/Bego Recorders")
+var storagePermissions   =  arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE)
+var cameraPermissions   =  arrayOf(Manifest.permission.CAMERA,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE)
+var voiceRecorderPermissions   =  arrayOf(Manifest.permission.MODIFY_AUDIO_SETTINGS,Manifest.permission.RECORD_AUDIO)
 
 
   fun initRecorder(applicationViewModel: ApplicationViewModel) {
@@ -126,7 +130,8 @@ var myAudioRecorder: MediaRecorder? =  null
         messageReceiverName = state.user[0].name.toString(),
         messageText = chatPageViewModel.textMessage.value.text
     )
-    chatPageViewModel.textMessage.value = TextFieldValue("")
+     chatPageViewModel.textMessage.value = TextFieldValue("")
+     chatPageViewModel.showIcons.value = true
 }
 
 fun voiceMessage(
@@ -266,11 +271,22 @@ fun initMediaPlayer(
     chatPageViewModel.isRecordClicked.value = false
 }
 
-fun getDuration(filePath:String,context: Application): String {
-    val mmr = MediaMetadataRetriever()
-    mmr.setDataSource(context, Uri.parse(filePath))
-    val durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-    return timerConversion(durationStr!!.toLong())
+fun getDuration(filePath:String,context: Application,fileUrl: String?): String {
+    var durationStr = ""
+    if(fileUrl == null){
+        val mmr = MediaMetadataRetriever()
+        mmr.setDataSource(context, Uri.parse(filePath))
+          durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)!!
+    }else{
+        val retriever = MediaMetadataRetriever()
+        if (Build.VERSION.SDK_INT >= 14)
+            retriever.setDataSource(fileUrl, HashMap())
+        else
+            retriever.setDataSource(fileUrl)
+        durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)!!
+    }
+
+    return timerConversion(durationStr.toLong())
 }
 
 
@@ -375,3 +391,8 @@ private fun openFile(applicationContext: Application, url: File) {
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     applicationContext.startActivity(intent)
 }
+
+fun hasPermissions(context: Context, permissions: Array<String>): Boolean =
+    permissions.all {
+        ActivityCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    }
